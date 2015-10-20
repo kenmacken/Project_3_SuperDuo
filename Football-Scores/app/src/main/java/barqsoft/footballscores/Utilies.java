@@ -106,7 +106,7 @@ public class Utilies
                 return R.drawable.stoke_city;
             case "Sunderland AFC":
                 return R.drawable.sunderland;
-            case "Swansea City":
+            case "Swansea City FC":
                 return R.drawable.swansea_city_afc;
             case "Tottenham Hotspur FC":
                 return R.drawable.tottenham_hotspur;
