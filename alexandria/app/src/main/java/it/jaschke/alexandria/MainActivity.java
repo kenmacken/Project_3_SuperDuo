@@ -21,10 +21,6 @@ import android.widget.Toast;
 
 import it.jaschke.alexandria.api.Callback;
 
-import it.jaschke.alexandria.com.google.zxing.integration.android.IntentIntegrator;
-import it.jaschke.alexandria.com.google.zxing.integration.android.IntentResult;
-import it.jaschke.alexandria.utils.Helpers;
-
 
 public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, Callback {
 
@@ -103,32 +99,6 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(title);
     }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-        if (scanningResult != null) {
-            //If device has data connection, send the result to the AddBook class method for handling the result
-            if(Helpers.isNetworkAvailable(getApplicationContext())) {
-                AddBook.activityResult(scanningResult, this);
-            } else {
-                Toast.makeText(getApplicationContext(), "No data connection available to search for the book", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            Toast toast1 = Toast.makeText(this,
-                    "No scan data received!", Toast.LENGTH_SHORT);
-            toast1.show();
-        }
-    }
-
-    /*private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }*/
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

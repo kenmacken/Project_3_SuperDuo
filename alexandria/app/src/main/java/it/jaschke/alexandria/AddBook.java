@@ -31,6 +31,7 @@ import it.jaschke.alexandria.utils.Helpers;
 
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
+    private Context mContext;
     private static EditText ean;
     private final int LOADER_ID = 1;
     private View rootView;
@@ -43,10 +44,29 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
 
 
+
     public AddBook(){
     }
 
-    public static void activityResult(IntentResult scanningResult, Context mContext) {
+    public static EditText getEan() {
+        return ean;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 0) {
+            if(data != null) {
+                String scanContent = data.getStringExtra("SCAN_RESULT");
+                String scanFormat = data.getStringExtra("SCAN_RESULT");
+                ean.setText(scanContent);
+            } else {
+                Toast.makeText(getActivity().getApplication().getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /*public static void activityResult(IntentResult scanningResult, Context mContext) {
         if (scanningResult != null) {
             String scanContent = scanningResult.getContents();
             String scanFormat = scanningResult.getFormatName();
@@ -54,7 +74,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         } else {
             Toast.makeText(mContext, "No scan data received!", Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -121,8 +141,17 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 //
 //                Toast toast = Toast.makeText(context, text, duration);
 //                toast.show();
-                IntentIntegrator scanIntegrator = new IntentIntegrator(getActivity());
-                scanIntegrator.initiateScan();
+                //IntentIntegrator scanIntegrator = new IntentIntegrator(getActivity());
+                //scanIntegrator.initiateScan();
+
+                if(Helpers.isNetworkAvailable(getActivity().getApplicationContext())) {
+                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+                    startActivityForResult(intent, 0);
+                } else {
+                    Toast.makeText(getActivity().getApplicationContext(), "No data connection available to search for the book", Toast.LENGTH_LONG).show();
+                }
+
             }
         });
 
