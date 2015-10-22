@@ -40,4 +40,5 @@
     <string name="away_crest_image">Away team crest</string>
     <string name="next_match_button">Next match button</string>
     <string name="next_match_button_text">></string>
+    <string name="share_score_button">Share Score Button</string>
 </resources>
