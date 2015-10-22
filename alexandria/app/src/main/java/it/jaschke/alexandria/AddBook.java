@@ -15,23 +15,24 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import it.jaschke.alexandria.data.AlexandriaContract;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
-import it.jaschke.alexandria.com.google.zxing.integration.android.IntentIntegrator;
-import it.jaschke.alexandria.com.google.zxing.integration.android.IntentResult;
 import it.jaschke.alexandria.utils.Helpers;
 
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
-    private Context mContext;
     private static EditText ean;
     private final int LOADER_ID = 1;
     private View rootView;
@@ -43,38 +44,12 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private String mScanContents = "Contents:";
 
 
-
-
     public AddBook(){
     }
 
-    public static EditText getEan() {
-        return ean;
+    public static void setEan(String ean) {
+        AddBook.ean.setText(ean);
     }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 0) {
-            if(data != null) {
-                String scanContent = data.getStringExtra("SCAN_RESULT");
-                String scanFormat = data.getStringExtra("SCAN_RESULT");
-                ean.setText(scanContent);
-            } else {
-                Toast.makeText(getActivity().getApplication().getApplicationContext(), "No scan data received!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    /*public static void activityResult(IntentResult scanningResult, Context mContext) {
-        if (scanningResult != null) {
-            String scanContent = scanningResult.getContents();
-            String scanFormat = scanningResult.getFormatName();
-            ean.setText(scanContent);
-        } else {
-            Toast.makeText(mContext, "No scan data received!", Toast.LENGTH_SHORT).show();
-        }
-    }*/
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -89,7 +64,6 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
         ean = (EditText) rootView.findViewById(R.id.ean);
-
         ean.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -103,17 +77,17 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
             @Override
             public void afterTextChanged(Editable s) {
-                String ean =s.toString();
+                String ean = s.toString();
                 //catch isbn10 numbers
-                if(ean.length()==10 && !ean.startsWith("978")){
-                    ean="978"+ean;
+                if (ean.length() == 10 && !ean.startsWith("978")) {
+                    ean = "978" + ean;
                 }
-                if(ean.length()<13){
+                if (ean.length() < 13) {
                     clearFields();
                     return;
                 }
 
-                if(Helpers.isNetworkAvailable(getActivity().getApplicationContext())) {
+                if (Helpers.isNetworkAvailable(getActivity().getApplicationContext())) {
                     //Once we have an ISBN, start a book intent
                     Intent bookIntent = new Intent(getActivity(), BookService.class);
                     bookIntent.putExtra(BookService.EAN, ean);
@@ -129,27 +103,14 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         rootView.findViewById(R.id.scan_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // This is the callback method that the system will invoke when your button is
-                // clicked. You might do this by launching another app or by including the
-                //functionality directly in this app.
-                // Hint: Use a Try/Catch block to handle the Intent dispatch gracefully, if you
-                // are using an external app.
-                //when you're done, remove the toast below.
-//                Context context = getActivity();
-//                CharSequence text = "This button should let you scan a book for its barcode!";
-//                int duration = Toast.LENGTH_SHORT;
-//
-//                Toast toast = Toast.makeText(context, text, duration);
-//                toast.show();
-                //IntentIntegrator scanIntegrator = new IntentIntegrator(getActivity());
-                //scanIntegrator.initiateScan();
-
-                if(Helpers.isNetworkAvailable(getActivity().getApplicationContext())) {
-                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                    intent.putExtra("SCAN_MODE", "PRODUCT_MODE");
-                    startActivityForResult(intent, 0);
-                } else {
-                    Toast.makeText(getActivity().getApplicationContext(), "No data connection available to search for the book", Toast.LENGTH_LONG).show();
+                IntentIntegrator integrator = new IntentIntegrator(getActivity());
+                integrator.setCaptureActivity(CaptureActivityAnyOrientation.class);
+                integrator.setOrientationLocked(false);
+                try {
+                    integrator.initiateScan();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(), "Barcode scanner not working", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -159,6 +120,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             @Override
             public void onClick(View view) {
                 ean.setText("");
+                Toast.makeText(getActivity(), "Book added to list", Toast.LENGTH_LONG).show();
             }
         });
 
